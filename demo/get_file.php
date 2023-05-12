@@ -19,8 +19,5 @@ $query = [
 ];
 $rsp = $api->getList($query);
 if(!$api->isSuccess()){
-	print_r($rsp);
 	die();
 }
-
-print_r($rsp);
