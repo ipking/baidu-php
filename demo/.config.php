@@ -8,8 +8,7 @@ $options = [
 	'app_key' => '', //应用key
 	'secret_key' => '', //秘钥key
 	'sign_key' => '', //签名key
-	'endpoint' => 'http://pan.baidu.com', //接入域名
-	'access_token' => '', //接口鉴权参数
+	'endpoint' => 'http://pan.baidu.com', //接入域名//接口鉴权参数
 ];
 
 //设置 请求成功时的 回调函数 可以用于收集日志记录 给请求加上请求 ID  用于跟踪

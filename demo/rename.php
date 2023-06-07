@@ -1,15 +1,17 @@
 <?php
 
 include '.config.php';
+include '.token.php';
 /**
  * @var array $options
+ * @var array $token
  */
 
 $api = new \Baidu\Xpan\Api\File();
 $api->setEndpoint($options['endpoint']);
 
 $query = [
-	'access_token' => $options['access_token'],
+	'access_token' => $token['access_token'],
 	'method'       => "filemanager",
 	'opera'        => "rename",
 ];

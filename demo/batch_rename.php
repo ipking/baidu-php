@@ -1,14 +1,15 @@
 <?php
 
 include '.config.php';
+include '.token.php';
 /**
  * @var array $options
+ * @var array $token
  */
 
 $api = new \Baidu\Xpan\Api\File();
 $api->setEndpoint($options['endpoint']);
 
-$path_list = [];
 $page = 0;
 $dir = '/';
 $search = 'xxx';
@@ -17,7 +18,7 @@ $replace = 'yyy';
 while(1){
 	$page++;
 	$query = [
-		'access_token' => $options['access_token'],
+		'access_token' => $token['access_token'],
 		'method'       => "search",
 		'key'          => $search,
 		'recursion'    => 1,
@@ -26,9 +27,10 @@ while(1){
 	];
 	$rsp = $api->getList($query);
 	if(!$api->isSuccess()){
-		die();
+		die(__LINE__);
 	}
 	
+	$path_list = [];
 	foreach($rsp['list']?:[] as $item){
 		$server_filename = $item['server_filename'];
 		
@@ -40,15 +42,27 @@ while(1){
 			];
 		}
 	}
-
+	
+	brename($token, $api, $path_list);
+	
 	if($rsp['has_more'] == 0){
 		break;
 	}
 }
 
-if($path_list){
+
+/**
+ * @param array $token
+ * @param \Baidu\Xpan\Api\File $api
+ * @param array $path_list
+ * @return void
+ */
+function brename($token, $api, $path_list){
+	if(!$path_list){
+		return;
+	}
 	$query = [
-		'access_token' => $options['access_token'],
+		'access_token' => $token['access_token'],
 		'method'       => "filemanager",
 		'opera'        => "rename",
 	];
@@ -59,6 +73,6 @@ if($path_list){
 	];
 	$rsp = $api->manager($query,$body);
 	if(!$api->isSuccess()){
-		die();
+		die(__LINE__);
 	}
 }
