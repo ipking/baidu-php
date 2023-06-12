@@ -12,43 +12,57 @@ $api->setEndpoint($options['endpoint']);
 
 $page = 0;
 $dir = '/';
-$search = 'xxx';
+$search_arr = [
+	'xxx',
+	'zzz',
+];
 $replace = 'yyy';
 
-while(1){
-	$page++;
-	$query = [
-		'access_token' => $token['access_token'],
-		'method'       => "search",
-		'key'          => $search,
-		'recursion'    => 1,
-		'dir'          => $dir,
-		'page'         => $page,
-	];
-	$rsp = $api->getList($query);
-	if(!$api->isSuccess()){
-		die(__LINE__);
-	}
-	
-	$path_list = [];
-	foreach($rsp['list']?:[] as $item){
-		$server_filename = $item['server_filename'];
+foreach($search_arr as $search){
+	while(1){
+		$page++;
+		$query = [
+			'access_token' => $token['access_token'],
+			'method'       => "search",
+			'key'          => $search,
+			'recursion'    => 1,
+			'dir'          => $dir,
+			'page'         => $page,
+		];
+		$rsp = $api->getList($query);
+		if(!$api->isSuccess()){
+			die(__LINE__);
+		}
 		
-		if($item['isdir'] == 0 and strpos($server_filename,$search)){
-			$newname = str_replace($search,$replace,$server_filename);
-			$path_list[] = [
-				"path"=>$item['path'],
-				"newname"=>$newname,
-			];
+		$path_list = [];
+		foreach($rsp['list']?:[] as $item){
+			$tmp_name = $server_filename = $item['server_filename'];
+			
+			if($item['isdir'] == 0){
+				$flag = 0;
+				foreach($search_arr as $s){
+					if(strpos($tmp_name,$s)){
+						$tmp_name = str_replace($s,$replace,$tmp_name);
+						$flag = 1;
+					}
+				}
+				if($flag){
+					$path_list[] = [
+						"path"=>$item['path'],
+						"newname"=>$tmp_name,
+					];
+				}
+			}
+		}
+		
+		brename($token, $api, $path_list);
+		
+		if($rsp['has_more'] == 0){
+			break;
 		}
 	}
-	
-	brename($token, $api, $path_list);
-	
-	if($rsp['has_more'] == 0){
-		break;
-	}
 }
+
 
 
 /**
@@ -67,12 +81,12 @@ function brename($token, $api, $path_list){
 		'opera'        => "rename",
 	];
 	$body = [
-		'async'    => 1,
+		'async'    => 0,
 		'filelist' => json_encode($path_list),
 		'ondup'    => "overwrite",
 	];
 	$rsp = $api->manager($query,$body);
 	if(!$api->isSuccess()){
-		die(__LINE__);
+		//die(__LINE__);
 	}
 }
