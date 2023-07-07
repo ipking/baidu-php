@@ -76,6 +76,7 @@ abstract class Client{
 	 * @throws HttpException|\Exception
 	 */
 	protected function send($uri, $requestOptions = []){
+		$this->data = null;
 		$this->method = strtoupper($requestOptions['method']);
 		$this->url = $this->endpoint.$uri;
 		
