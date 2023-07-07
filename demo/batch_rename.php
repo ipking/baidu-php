@@ -10,17 +10,18 @@ include '.token.php';
 $api = new \Baidu\Xpan\Api\File();
 $api->setEndpoint($options['endpoint']);
 
-$page = 0;
+
 $dir = '/';
 $search_arr = [
-	'xxx',
-	'zzz',
+	'xxx' => '',
+	'zzz' => '',
 ];
-$replace = 'yyy';
 
-foreach($search_arr as $search){
+foreach($search_arr as $search => $rr){
+	$page = 0;
 	while(1){
 		$page++;
+		loop:
 		$query = [
 			'access_token' => $token['access_token'],
 			'method'       => "search",
@@ -31,18 +32,23 @@ foreach($search_arr as $search){
 		];
 		$rsp = $api->getList($query);
 		if(!$api->isSuccess()){
-			die(__LINE__);
+			if($rsp['errno'] == 31034){
+				//接口请求过于频繁，注意控制。
+				sleep(5);
+				goto loop;
+			}
+			//die(__LINE__);
 		}
 		
 		$path_list = [];
 		foreach($rsp['list']?:[] as $item){
-			$tmp_name = $server_filename = $item['server_filename'];
+			$tmp_name = $item['server_filename'];
 			
 			if($item['isdir'] == 0){
 				$flag = 0;
-				foreach($search_arr as $s){
+				foreach($search_arr as $s=>$r){
 					if(strpos($tmp_name,$s)){
-						$tmp_name = str_replace($s,$replace,$tmp_name);
+						$tmp_name = str_replace($s,$r,$tmp_name);
 						$flag = 1;
 					}
 				}
@@ -85,8 +91,16 @@ function brename($token, $api, $path_list){
 		'filelist' => json_encode($path_list),
 		'ondup'    => "overwrite",
 	];
-	$rsp = $api->manager($query,$body);
-	if(!$api->isSuccess()){
-		//die(__LINE__);
-	}
+	do{
+		$rsp = $api->manager($query,$body);
+		if(!$api->isSuccess()){
+			//die(__LINE__);
+		}
+		if($rsp['errno'] == 31034){
+			sleep(5);
+			continue;
+		}
+		break;
+	}while(1);
+	
 }
