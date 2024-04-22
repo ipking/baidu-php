@@ -64,6 +64,10 @@ foreach($search_arr as $search => $rr){
 		brename($token, $api, $path_list);
 		
 		if($rsp['has_more'] == 0){
+			if($page > 1){
+				$page = 1;
+				goto loop;
+			}
 			break;
 		}
 	}
